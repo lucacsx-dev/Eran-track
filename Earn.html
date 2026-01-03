@@ -1,0 +1,2780 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Multi-Channel Earnings Tracker 2026</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b1220">
+
+    <!-- iOS -->
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f1a2e;
+            --panel2: #0c1628;
+            --text: #e8eefc;
+            --muted: #a8b3d6;
+            --line: rgba(255, 255, 255, .08);
+            --accent: #7aa2ff;
+            --good: #3ddc97;
+            --warn: #ffcc66;
+            --bad: #ff6b6b;
+            --chip: #1a2a4a;
+            --shadow: 0 12px 30px rgba(0, 0, 0, .35);
+            --radius: 16px;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            background: radial-gradient(1200px 500px at 20% -10%, rgba(122, 162, 255, .25), transparent 70%),
+                radial-gradient(900px 500px at 90% 10%, rgba(61, 220, 151, .20), transparent 70%),
+                linear-gradient(180deg, var(--bg), #070c16 70%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* Keeps background static */
+            min-height: 100vh;
+            /* Ensures it covers full screen */
+            color: var(--text);
+        }
+
+        a {
+            color: inherit
+        }
+
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 22px
+        }
+
+        header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-self: start;
+        }
+
+        .center-year {
+            justify-self: center;
+        }
+
+        .year-select-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03));
+            border: 1px solid var(--line);
+            padding: 6px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .year-select-container label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .year-select-container select {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 4px 2px;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        .year-select-container select:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        @media (max-width: 800px) {
+            header {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .brand {
+                align-items: center;
+                text-align: center;
+            }
+
+            .center-year {
+                display: flex;
+                justify-content: center;
+            }
+
+            .top-actions {
+                justify-content: center;
+            }
+        }
+
+        .brand h1 {
+            font-size: 18px;
+            margin: 0;
+            letter-spacing: .2px
+        }
+
+        .brand small {
+            color: var(--muted)
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            justify-self: end;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+            color: var(--text);
+        }
+
+        .btn {
+            background: linear-gradient(180deg, rgba(122, 162, 255, .22), rgba(122, 162, 255, .12));
+            border: 1px solid rgba(122, 162, 255, .35);
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, .22);
+        }
+
+        .btn:hover {
+            filter: brightness(1.08)
+        }
+
+        .btn.secondary {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .04));
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn.danger {
+            background: linear-gradient(180deg, rgba(255, 107, 107, .18), rgba(255, 107, 107, .10));
+            border: 1px solid rgba(255, 107, 107, .35);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .03);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 10px;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            color: var(--muted);
+            background: transparent;
+        }
+
+        .tab.active {
+            background: linear-gradient(180deg, rgba(122, 162, 255, .25), rgba(122, 162, 255, .12));
+            border-color: rgba(122, 162, 255, .35);
+            color: var(--text);
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .grid.cards {
+            grid-template-columns: repeat(12, 1fr)
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600
+        }
+
+        .big {
+            font-size: 26px;
+            font-weight: 750;
+            letter-spacing: .3px;
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 6px
+        }
+
+        .chip {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(26, 42, 74, .85);
+            border: 1px solid rgba(255, 255, 255, .10);
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .chip.good {
+            border-color: rgba(61, 220, 151, .35);
+            color: #c8ffe9
+        }
+
+        .chip.warn {
+            border-color: rgba(255, 204, 102, .45);
+            color: #fff1cc
+        }
+
+        .chip.bad {
+            border-color: rgba(255, 107, 107, .45);
+            color: #ffd3d3
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 160px;
+            flex: 1;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        input,
+        select,
+        textarea {
+            background: rgba(0, 0, 0, .18);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 10px 10px;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: rgba(122, 162, 255, .55)
+        }
+
+        textarea {
+            min-height: 38px;
+            resize: vertical
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 18px 0 10px 0;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 15px
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .14);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            font-size: 13px;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 650;
+            font-size: 12px
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, .03)
+        }
+
+        .right {
+            text-align: right
+        }
+
+        .mono {
+            font-family: var(--mono)
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 14px
+        }
+
+        @media (max-width: 980px) {
+            .two-col {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .kpi {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .kpi b {
+            font-size: 13px
+        }
+
+        .kpi span {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .pill {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .04);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .pill.good {
+            border-color: rgba(61, 220, 151, .35);
+            color: #c8ffe9
+        }
+
+        .pill.warn {
+            border-color: rgba(255, 204, 102, .45);
+            color: #fff1cc
+        }
+
+        .pill.bad {
+            border-color: rgba(255, 107, 107, .45);
+            color: #ffd3d3
+        }
+
+        /* Print */
+        @media print {
+            body {
+                background: #fff;
+                color: #000
+            }
+
+            .tabs,
+            .top-actions,
+            .no-print {
+                display: none !important
+            }
+
+            .card,
+            table {
+                box-shadow: none
+            }
+
+            .wrap {
+                max-width: none
+            }
+        }
+
+        /* ---------- Mobile friendliness ---------- */
+        @media (max-width: 980px) {
+            .wrap {
+                padding: 14px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .top-actions {
+                justify-content: flex-start;
+                width: 100%;
+            }
+
+            .top-actions .btn {
+                flex: 1 1 auto;
+            }
+
+            .brand {
+                width: 100%;
+            }
+        }
+
+        /* Tabs: su mobile scorrono orizzontalmente invece di "schiacciarsi" */
+        .tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+        }
+
+        .tab {
+            flex: 0 0 auto;
+        }
+
+        /* Campi: niente min-width fissi che sforano */
+        @media (max-width: 700px) {
+            .row {
+                gap: 10px;
+            }
+
+            .field {
+                min-width: 0;
+                flex: 1 1 100%;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            /* utile nelle righe form */
+        }
+
+        /* Griglia card: ignora gli span inline e metti tutto a tutta larghezza */
+        @media (max-width: 900px) {
+            .grid.cards {
+                grid-template-columns: 1fr !important;
+            }
+
+            .grid.cards>.card {
+                grid-column: 1 / -1 !important;
+            }
+
+            .two-col {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Tabelle: scroll orizzontale contenuto (non tutta la pagina) */
+        table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        thead,
+        tbody {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <div class="brand">
+                <h1>Multi-Channel Earnings Tracker</h1>
+                <small class="muted">Glovo bisettimanale • Deliveroo mensile • Servizi Funebri mensile</small>
+            </div>
+
+            <div class="center-year">
+                <div class="year-select-container">
+                    <label for="yearSelector">Anno</label>
+                    <select id="yearSelector">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="top-actions no-print">
+                <button class="btn secondary" id="btnExport">Esporta JSON</button>
+                <label class="btn secondary" for="fileImport" style="cursor:pointer">Importa JSON</label>
+                <input id="fileImport" type="file" accept="application/json" class="hidden">
+                <button class="btn danger" id="btnReset">Reset (cancella dati)</button>
+            </div>
+        </header>
+
+        <div class="tabs no-print" id="tabs"></div>
+
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="view">
+            <div class="grid cards">
+                <div class="card" style="grid-column: span 4">
+                    <h3>Guadagno Totale (YTD)</h3>
+                    <div class="big mono" id="kpiTotal">€0,00</div>
+                    <div class="sub" id="kpiTotalSub">Somma di tutti i canali</div>
+                </div>
+                <div class="card" style="grid-column: span 4">
+                    <h3>Contanti Prelevati (YTD)</h3>
+                    <div class="big mono" id="kpiCash">€0,00</div>
+                    <div class="sub">Glovo + Deliveroo</div>
+                </div>
+                <div class="card" style="grid-column: span 4">
+                    <h3>Da Ricevere (YTD)</h3>
+                    <div class="big mono" id="kpiDue">€0,00</div>
+                    <div class="sub">Ricavi - Contanti</div>
+                </div>
+
+                <div class="card" style="grid-column: span 6">
+                    <div class="section-title">
+                        <h2>Dettaglio per canale</h2>
+                        <span class="chip" id="chipStatus">Pronto</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Canale</th>
+                                <th class="right">Guadagno</th>
+                                <th class="right">Consegne/Incarichi</th>
+                                <th class="right">Media</th>
+                                <th class="right">Giorni attivi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblChannels"></tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="grid-column: span 6">
+                    <div class="section-title">
+                        <h2>Alert rapidi</h2>
+                        <span class="pill" id="pillAlerts">0</span>
+                    </div>
+                    <div id="alertsBox" class="grid" style="gap:10px"></div>
+                </div>
+
+                <div class="card" style="grid-column: span 12">
+                    <div class="section-title">
+                        <h2>Grafici</h2>
+                        <span class="muted">Riepilogo mensile</span>
+                    </div>
+                    <div class="two-col">
+                        <div class="card" style="background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.08)">
+                            <h3>Ricavi mensili (tutti i canali)</h3>
+                            <canvas id="chartRevenue"></canvas>
+                        </div>
+                        <div class="card" style="background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.08)">
+                            <h3>Consegne/Inc. mensili (tutti i canali)</h3>
+                            <canvas id="chartJobs"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="view-impostazioni" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Impostazioni</h2>
+                    <span class="muted">Per fatturazione Glovo e obiettivi</span>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Data inizio periodo Glovo (bisettimanale)</label>
+                        <input id="glovoStartDate" type="date" />
+                    </div>
+                    <div class="field">
+                        <label>Target consegne Glovo</label>
+                        <input id="targetGlovo" type="number" min="0" value="2000" />
+                    </div>
+                    <div class="field">
+                        <label>Target consegne Deliveroo</label>
+                        <input id="targetDeliveroo" type="number" min="0" value="2000" />
+                    </div>
+                    <div class="field">
+                        <label>Target ricavi annuali (totale)</label>
+                        <input id="targetRevenue" type="number" min="0" value="15000" />
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnSaveSettings">Salva</button>
+                    </div>
+                </div>
+
+                <p class="muted" style="margin-top:12px">
+                    Suggerimento: imposta la “Data inizio periodo Glovo” uguale all’inizio del tuo primo periodo
+                    mostrato in app/estratto (di solito un lunedì). Poi i periodi vengono calcolati ogni 14 giorni.
+                </p>
+            </div>
+        </section>
+
+        <!-- GLOVO -->
+        <section id="view-glovo" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Glovo - Inserimento giornaliero</h2>
+                    <span class="chip" id="glovoChip">Bisettimanale</span>
+                </div>
+
+                <div class="row no-print">
+                    <div class="field">
+                        <label>Data</label>
+                        <input id="gDate" type="date" />
+                    </div>
+                    <div class="field">
+                        <label>Guadagno (€)</label>
+                        <input id="gEarn" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="field">
+                        <label>Contanti prelevati (€)</label>
+                        <input id="gCash" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="field">
+                        <label>Consegne</label>
+                        <input id="gDel" type="number" step="1" min="0" />
+                    </div>
+                    <div class="field" style="min-width:240px">
+                        <label>Note</label>
+                        <input id="gNote" type="text" placeholder="Opzionale" />
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnAddGlovo">Aggiungi</button>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Ultime registrazioni</h2>
+                    <span class="muted">Modifica: elimina e reinserisci</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th class="right">Guadagno</th>
+                            <th class="right">Contanti</th>
+                            <th class="right">Consegne</th>
+                            <th>Note</th>
+                            <th class="right no-print">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblGlovo"></tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <div class="section-title">
+                    <h2>Riepilogo Glovo (bisettimanale)</h2>
+                    <span class="muted">Calcolato dalla data di inizio impostata</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Periodo</th>
+                            <th>Inizio</th>
+                            <th>Fine</th>
+                            <th class="right">Guadagno</th>
+                            <th class="right">Contanti</th>
+                            <th class="right">Da ricevere</th>
+                            <th class="right">Consegne</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblGlovoPeriods"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DELIVEROO -->
+        <section id="view-deliveroo" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Deliveroo - Inserimento giornaliero</h2>
+                    <span class="chip">Mensile</span>
+                </div>
+
+                <div class="row no-print">
+                    <div class="field">
+                        <label>Data</label>
+                        <input id="dDate" type="date" />
+                    </div>
+                    <div class="field">
+                        <label>Guadagno (€)</label>
+                        <input id="dEarn" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="field">
+                        <label>Contanti prelevati (€)</label>
+                        <input id="dCash" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="field">
+                        <label>Consegne</label>
+                        <input id="dDel" type="number" step="1" min="0" />
+                    </div>
+                    <div class="field" style="min-width:240px">
+                        <label>Note</label>
+                        <input id="dNote" type="text" placeholder="Opzionale" />
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnAddDeliveroo">Aggiungi</button>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Ultime registrazioni</h2>
+                    <span class="muted">Modifica: elimina e reinserisci</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th class="right">Guadagno</th>
+                            <th class="right">Contanti</th>
+                            <th class="right">Consegne</th>
+                            <th>Note</th>
+                            <th class="right no-print">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblDeliveroo"></tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <div class="section-title">
+                    <h2>Riepilogo Deliveroo (mensile)</h2>
+                    <span class="muted">Gennaio → Dicembre</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mese</th>
+                            <th>Inizio</th>
+                            <th>Fine</th>
+                            <th class="right">Guadagno</th>
+                            <th class="right">Contanti</th>
+                            <th class="right">Da ricevere</th>
+                            <th class="right">Consegne</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblDeliverooMonths"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FUNERALI -->
+        <section id="view-funebri" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Servizi funebri - Inserimento (più incarichi al giorno)</h2>
+                    <span class="chip">Mensile</span>
+                </div>
+
+                <div class="row no-print">
+                    <div class="field">
+                        <label>Data incarico</label>
+                        <input id="fDate" type="date" />
+                    </div>
+                    <div class="field">
+                        <label>Agenzia</label>
+                        <input id="fAgency" type="text" placeholder="Es. Agenzia Rossi" />
+                    </div>
+                    <div class="field">
+                        <label>Città</label>
+                        <input id="fCity" type="text" placeholder="Es. Roma" />
+                    </div>
+                    <div class="field">
+                        <label>Tipo servizio</label>
+                        <input id="fType" type="text" placeholder="Es. Trasporto / Vestizione" />
+                    </div>
+                    <div class="field">
+                        <label>Importo (€)</label>
+                        <input id="fAmount" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="field" style="min-width:220px">
+                        <label>Note</label>
+                        <input id="fNote" type="text" placeholder="Opzionale" />
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnAddFuneral">Aggiungi</button>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Ultimi incarichi</h2>
+                    <span class="muted">Ogni riga = 1 incarico</span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Agenzia</th>
+                            <th>CittÃ </th>
+                            <th>Tipo</th>
+                            <th class="right">Importo</th>
+                            <th>Note</th>
+                            <th class="right no-print">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblFunerals"></tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <div class="section-title">
+                    <h2>Riepilogo Servizi funebri (mensile)</h2>
+                    <span class="muted">Totali + media per incarico</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mese</th>
+                            <th>Inizio</th>
+                            <th>Fine</th>
+                            <th class="right">Guadagno</th>
+                            <th class="right">Incarichi</th>
+                            <th class="right">Media/incarico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblFuneralMonths"></tbody>
+                </table>
+
+                <div class="section-title" style="margin-top:14px">
+                    <h2>Top agenzie (YTD)</h2>
+                    <span class="muted">Frequenza e guadagno</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agenzia</th>
+                            <th class="right">Incarichi</th>
+                            <th class="right">Totale</th>
+                            <th class="right">Media</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblTopAgencies"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FISCALE -->
+        <section id="view-fiscale" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Gestione fiscale (P.IVA) - forfettario</h2>
+                    <span class="muted">Stima accantonamenti</span>
+                </div>
+
+                <div class="row no-print">
+                    <div class="field">
+                        <label>Aliquota imposta sostitutiva</label>
+                        <input id="taxRate" type="number" step="0.01" min="0" value="0.15" />
+                        <div class="sub muted">Inserisci 0.05, 0.15, ecc.</div>
+                    </div>
+                    <div class="field">
+                        <label>Coefficiente redditività</label>
+                        <input id="profitCoef" type="number" step="0.01" min="0" value="0.67" />
+                        <div class="sub muted">Es. 0.67</div>
+                    </div>
+                    <div class="field">
+                        <label>INPS (Gestione Separata)</label>
+                        <input id="inpsRate" type="number" step="0.0001" min="0" value="0.2607" />
+                        <div class="sub muted">Es. 0.2607</div>
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnSaveTax">Salva</button>
+                    </div>
+                </div>
+
+                <div class="grid cards" style="margin-top:12px">
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Ricavi lordi (YTD)</h3>
+                        <div class="big mono" id="taxGross">€0,00</div>
+                        <div class="sub">Somma di tutti i canali</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Reddito imponibile stimato</h3>
+                        <div class="big mono" id="taxImponibile">€0,00</div>
+                        <div class="sub mono" id="taxImponibileSub">coef 0.67</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Tasse + INPS (stima)</h3>
+                        <div class="big mono" id="taxTotal">€0,00</div>
+                        <div class="sub mono" id="taxTotalSub">aliquote</div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:14px">
+                    <h2>Accantonamento consigliato</h2>
+                    <span class="muted">Mensile (calcolato sui ricavi mensili)</span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mese</th>
+                            <th class="right">Ricavi</th>
+                            <th class="right">Imponibile</th>
+                            <th class="right">Imposta</th>
+                            <th class="right">INPS</th>
+                            <th class="right">Totale da accantonare</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblTaxMonths"></tbody>
+                </table>
+
+                <p class="muted" style="margin-top:12px">
+                    Importante: questa è una stima “gestionale”, utile per accantonare; per importi ufficiali fa
+                    fede il commercialista.
+                </p>
+            </div>
+        </section>
+
+        <!-- ALERT / KPI -->
+        <section id="view-alert" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Alert & KPI</h2>
+                    <span class="muted">Soglie modificabili nel codice se vuoi personalizzare</span>
+                </div>
+
+                <div class="grid cards">
+                    <div class="card" style="grid-column: span 6">
+                        <h3>KPI ultimi 7 giorni</h3>
+                        <div id="kpi7" class="grid" style="gap:10px"></div>
+                    </div>
+                    <div class="card" style="grid-column: span 6">
+                        <h3>Alert attivi</h3>
+                        <div id="alertsFull" class="grid" style="gap:10px"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORECAST -->
+        <section id="view-forecast" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Previsioni & forecast</h2>
+                    <span class="muted">Proiezione lineare sulla media attuale</span>
+                </div>
+
+                <div class="grid cards">
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Media ricavi / giorno (YTD)</h3>
+                        <div class="big mono" id="fcAvgDay">€0,00</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Proiezione ricavi fine anno</h3>
+                        <div class="big mono" id="fcYear">€0,00</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Stima data target ricavi</h3>
+                        <div class="big mono" id="fcEtaRevenue">N/A</div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 6">
+                        <h3>Glovo: target consegne</h3>
+                        <div class="kpi"><b>Consegne YTD</b><span class="mono" id="fcGlovoDel">0</span></div>
+                        <div class="kpi"><b>Mancanti</b><span class="mono" id="fcGlovoRemain">0</span></div>
+                        <div class="kpi"><b>Media consegne/giorno (giorni attivi)</b><span class="mono"
+                                id="fcGlovoAvg">0</span></div>
+                        <div class="kpi"><b>Stima data raggiungimento</b><span class="mono" id="fcGlovoEta">N/A</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 6">
+                        <h3>Deliveroo: target consegne</h3>
+                        <div class="kpi"><b>Consegne YTD</b><span class="mono" id="fcDrooDel">0</span></div>
+                        <div class="kpi"><b>Mancanti</b><span class="mono" id="fcDrooRemain">0</span></div>
+                        <div class="kpi"><b>Media consegne/giorno (giorni attivi)</b><span class="mono"
+                                id="fcDrooAvg">0</span></div>
+                        <div class="kpi"><b>Stima data raggiungimento</b><span class="mono" id="fcDrooEta">N/A</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 6">
+                        <h3>Servizi funebri: ritmo</h3>
+                        <div class="kpi"><b>Incarichi YTD</b><span class="mono" id="fcFunCount">0</span></div>
+                        <div class="kpi"><b>Media importo/incarico</b><span class="mono" id="fcFunAvg">€0,00</span>
+                        </div>
+                        <div class="kpi"><b>Ricavi funebri mensili medi</b><span class="mono"
+                                id="fcFunMonthlyAvg">€0,00</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OBBIETTIVI -->
+        <section id="view-obbiettivi" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Obbiettivi</h2>
+                    <span class="muted">Calcolo su incassi confermati</span>
+                </div>
+
+                <div class="row no-print">
+                    <div class="field">
+                        <label>Prezzo</label>
+                        <input id="goalPrice" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="field">
+                        <label>Descrizione</label>
+                        <input id="goalDesc" type="text" placeholder="Es. Nuovo telefono">
+                    </div>
+                    <div class="field">
+                        <label>Data di scadenza (opzionale)</label>
+                        <input id="goalDeadline" type="date">
+                    </div>
+                    <div class="field" style="flex:0">
+                        <button class="btn" id="btnAddGoal">Aggiungi obbiettivo</button>
+                    </div>
+                </div>
+
+                <div class="card"
+                    style="margin-top:14px; background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.08)">
+                    <h3>Allocazione su ultimo incasso</h3>
+                    <div class="row no-print" style="margin-top:10px">
+                        <div class="field" style="min-width:220px">
+                            <label>Auto-applica su ogni incasso</label>
+                            <select id="goalAutoApply">
+                                <option value="0">No</option>
+                                <option value="1">Sì</option>
+                            </select>
+                        </div>
+                        <div class="field" style="flex:0">
+                            <button class="btn" id="btnApplyLastInflow" style="min-width: 140px;">Applica
+                                (ultimo)</button>
+                        </div>
+                        <div class="field" style="flex:0">
+                            <button class="btn secondary" id="btnUndoLastInflow">Annulla ultimo</button>
+                        </div>
+                    </div>
+                    <div id="goalsHint" class="sub muted" style="margin-top:8px">Nessun incasso registrato.</div>
+                    <div id="goalsAllocGrid" class="grid" style="gap:10px; margin-top:10px"></div>
+                </div>
+
+                <div class="section-title" style="margin-top:16px">
+                    <h2>Lista obbiettivi</h2>
+                    <span class="muted">Preset: Spesa • Risparmi • Svago</span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Voce</th>
+                            <th class="right">Target</th>
+                            <th>Scadenza</th>
+                            <th class="right">Accantonato</th>
+                            <th class="right">Mancante</th>
+                            <th class="right">%</th>
+                            <th class="right">Suggerito (ultimo incasso)</th>
+                            <th class="right no-print">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblGoals"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SCHEDA RIASSUNTIVA -->
+        <section id="view-scheda" class="view hidden">
+            <div class="card">
+                <div class="section-title">
+                    <h2>Scheda riassuntiva (stampa)</h2>
+                    <div class="no-print">
+                        <button class="btn secondary" onclick="window.print()">Stampa</button>
+                    </div>
+                </div>
+
+                <div class="grid cards">
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Totale ricavi</h3>
+                        <div class="big mono" id="sTotal">€0,00</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Totale contanti</h3>
+                        <div class="big mono" id="sCash">€0,00</div>
+                    </div>
+                    <div class="card" style="grid-column: span 4">
+                        <h3>Da ricevere</h3>
+                        <div class="big mono" id="sDue">€0,00</div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 12">
+                        <h3>Dettaglio piattaforme</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Canale</th>
+                                    <th class="right">Guadagno</th>
+                                    <th class="right">Consegne/Incarichi</th>
+                                    <th class="right">Media</th>
+                                    <th class="right">Giorni attivi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sTbl"></tbody>
+                        </table>
+                        <div class="sub muted" id="sNote"></div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 12">
+                        <h3>Situazione fiscale (stima)</h3>
+                        <div class="kpi"><b>Imponibile stimato</b><span class="mono" id="sImpon">€0,00</span></div>
+                        <div class="kpi"><b>Imposta stimata</b><span class="mono" id="sTax">€0,00</span></div>
+                        <div class="kpi"><b>INPS stimato</b><span class="mono" id="sInps">€0,00</span></div>
+                        <div class="kpi"><b>Totale da accantonare</b><span class="mono" id="sTaxTot">€0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="muted" style="margin-top:14px; font-size:12px">
+            Dati salvati localmente nel browser. Backup consigliato: “Esporta JSON”.
+        </footer>
+    </div>
+
+    <script>
+        // -------------------------
+        // State & Year Management
+        // -------------------------
+        let currentYear = 2026; // default
+
+        const fmtEUR = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+        const pad2 = n => String(n).padStart(2, '0');
+        const toISO = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        const fromISO = s => {
+            const [y, m, d] = s.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        };
+        const withinYear = (iso) => iso && iso.startsWith(String(currentYear));
+
+        function getCurrentDate() {
+            const now = new Date();
+            // Se siamo già oltre il 2026, usa l'anno corrente
+            if (now.getFullYear() >= 2026) {
+                return now;
+            }
+            // Altrimenti usa la fine dell'anno selezionato
+            return new Date(currentYear, 11, 31);
+        }
+
+        function startOfMonth(y, m) { return new Date(y, m, 1); }
+        function endOfMonth(y, m) { return new Date(y, m + 1, 0); }
+        function sum(arr, pick) { return arr.reduce((a, x) => a + (pick(x) || 0), 0); }
+        function countDistinctDays(arr) { return new Set(arr.map(x => x.date)).size; }
+        function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+        // Helper date range
+        function yearStart() { return new Date(currentYear, 0, 1).getTime(); }
+        function yearEnd() { return new Date(currentYear, 11, 31, 23, 59, 59, 999).getTime(); }
+
+        function isInYear(iso) {
+            // se hai già currentYear, usa quello; altrimenti YEAR (come nel file attuale)
+            const y = (typeof currentYear !== 'undefined') ? currentYear : 2026;
+            return String(iso || '').startsWith(String(y));
+        }
+
+        function buildInflows() {
+            const inflows = [];
+
+            // 1) CONTANTI giornalieri (Glovo/Deliveroo)
+            for (const r of state.glovo) {
+                if (!isInYear(r.date)) continue;
+                const amt = Number(r.cash) || 0;
+                if (amt > 0) inflows.push({ id: `cash:glovo:${r.id}`, date: r.date, source: 'Glovo contanti', gross: amt });
+            }
+            for (const r of state.deliveroo) {
+                if (!isInYear(r.date)) continue;
+                const amt = Number(r.cash) || 0;
+                if (amt > 0) inflows.push({ id: `cash:deliveroo:${r.id}`, date: r.date, source: 'Deliveroo contanti', gross: amt });
+            }
+
+            // 2) INCASSI confermati (payout) da riepiloghi
+            for (const [key, s] of Object.entries(state.settlements?.glovo || {})) {
+                if (!s?.received) continue;
+                if (!isInYear(s.receivedAt)) continue;
+                inflows.push({ id: `settle:glovo:${key}`, date: s.receivedAt, source: `Glovo incasso ${key}`, gross: Number(s.amount) || 0 });
+            }
+            for (const [key, s] of Object.entries(state.settlements?.deliveroo || {})) {
+                if (!s?.received) continue;
+                if (!isInYear(s.receivedAt)) continue;
+                inflows.push({ id: `settle:deliveroo:${key}`, date: s.receivedAt, source: `Deliveroo incasso ${key}`, gross: Number(s.amount) || 0 });
+            }
+
+            // 3) FUNERALI pagati
+            for (const r of state.funerali) {
+                if (!isInYear(r.date)) continue;
+                if (!r.paid) continue;
+                const d = r.paidAt || r.date;
+                if (!isInYear(d)) continue;
+                const amt = Number(r.amount) || 0;
+                if (amt > 0) inflows.push({ id: `funeral:${r.id}`, date: d, source: `Funerale incassato`, gross: amt });
+            }
+
+            // ordina per data (e id per stabilità)
+            inflows.sort((a, b) => (a.date.localeCompare(b.date) || a.id.localeCompare(b.id)));
+            return inflows;
+        }
+
+        function inflowsYear() {
+            return buildInflows().filter(x => isInYear(x.date));
+        }
+
+        // filtra tra start/end ma conteggia SOLO la parte nel currentYear
+        function filterBetweenYear(arr, start, end) {
+            const s = start.getTime(), e = end.getTime();
+            return arr.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e && isInYear(x.date);
+            });
+        }
+
+        const LSKEYS = {
+            glovo: 'tracker2026:glovo',
+            deliveroo: 'tracker2026:deliveroo',
+            funerali: 'tracker2026:funerali',
+            settings: 'tracker2026:settings',
+            tax: 'tracker2026:tax',
+            year: 'tracker:currentYear',
+            // NUOVI
+            goals: 'tracker2026:goals',
+            goalAllocLog: 'tracker2026:goalAllocLog',
+            goalSettings: 'tracker2026:goalSettings',
+            settlements: 'tracker2026:settlements'
+        };
+
+        let state = {
+            glovo: [],
+            deliveroo: [],
+            funerali: [],
+            settlements: { glovo: {}, deliveroo: {} },
+            inflows: [],
+            goals: [],
+            settings: {
+                glovoStartDate: (currentYear === 2026) ? '2025-12-29' : `${currentYear}-01-05`,
+                targetGlovo: 2000,
+                targetDeliveroo: 2000,
+                targetRevenue: 15000
+            },
+            tax: {
+                taxRate: 0.15,
+                profitCoef: 0.67,
+                inpsRate: 0.2607
+            }
+        };
+
+        function saveAll() {
+            localStorage.setItem(`${LSKEYS.glovo}_${currentYear}`, JSON.stringify(state.glovo));
+            localStorage.setItem(`${LSKEYS.deliveroo}_${currentYear}`, JSON.stringify(state.deliveroo));
+            localStorage.setItem(`${LSKEYS.funerali}_${currentYear}`, JSON.stringify(state.funerali));
+            localStorage.setItem(`${LSKEYS.settings}_${currentYear}`, JSON.stringify(state.settings));
+            localStorage.setItem(`${LSKEYS.tax}_${currentYear}`, JSON.stringify(state.tax));
+
+            // NUOVE
+            localStorage.setItem(`${LSKEYS.goals}_${currentYear}`, JSON.stringify(state.goals || []));
+            localStorage.setItem(`${LSKEYS.goalAllocLog}_${currentYear}`, JSON.stringify(state.goalAllocLog || {}));
+            localStorage.setItem(`${LSKEYS.goalSettings}_${currentYear}`, JSON.stringify(state.goalSettings || { autoApply: false }));
+            localStorage.setItem(`${LSKEYS.settlements}_${currentYear}`, JSON.stringify(state.settlements || { glovo: {}, deliveroo: {} }));
+
+            localStorage.setItem(LSKEYS.year, String(currentYear));
+        }
+
+        function loadAll() {
+            try {
+                // Carica anno salvato
+                const savedYear = localStorage.getItem(LSKEYS.year);
+                if (savedYear) currentYear = Number(savedYear);
+
+                state.glovo = JSON.parse(localStorage.getItem(`${LSKEYS.glovo}_${currentYear}`)) || [];
+                state.deliveroo = JSON.parse(localStorage.getItem(`${LSKEYS.deliveroo}_${currentYear}`)) || [];
+                state.funerali = JSON.parse(localStorage.getItem(`${LSKEYS.funerali}_${currentYear}`)) || [];
+                state.settings = JSON.parse(localStorage.getItem(`${LSKEYS.settings}_${currentYear}`)) || state.settings;
+
+                // Fix automatico data inizio Glovo 2026 se ancora settata al vecchio default
+                if (currentYear === 2026 && state.settings.glovoStartDate === '2026-01-05') {
+                    state.settings.glovoStartDate = '2025-12-29';
+                }
+                state.tax = JSON.parse(localStorage.getItem(`${LSKEYS.tax}_${currentYear}`)) || state.tax;
+
+                // NUOVE (se non ci sono, non devono “sparire”)
+                state.goals = JSON.parse(localStorage.getItem(`${LSKEYS.goals}_${currentYear}`)) || [];
+                state.goalAllocLog = JSON.parse(localStorage.getItem(`${LSKEYS.goalAllocLog}_${currentYear}`)) || {};
+                state.goalSettings = JSON.parse(localStorage.getItem(`${LSKEYS.goalSettings}_${currentYear}`)) || { autoApply: false };
+                state.settlements = JSON.parse(localStorage.getItem(`${LSKEYS.settlements}_${currentYear}`)) || { glovo: {}, deliveroo: {} };
+
+                // retro-compat: campi funerali pagati
+                state.funerali.forEach(r => {
+                    if (typeof r.paid === 'undefined') r.paid = false;
+                    if (typeof r.paidAt === 'undefined') r.paidAt = null;
+                });
+            } catch (e) {
+                console.warn('Errore loadAll', e);
+            }
+        }
+
+        /* -------------------------
+           Tabs / Views
+        -------------------------- */
+        const VIEWS = [
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'obbiettivi', label: 'Obbiettivi' },
+            { id: 'impostazioni', label: 'Impostazioni' },
+            { id: 'glovo', label: 'Glovo' },
+            { id: 'deliveroo', label: 'Deliveroo' },
+            { id: 'funebri', label: 'Servizi funebri' },
+            { id: 'fiscale', label: 'Fiscale' },
+            { id: 'alert', label: 'Alert & KPI' },
+            { id: 'forecast', label: 'Forecast' },
+            { id: 'scheda', label: 'Scheda riassuntiva' }
+        ];
+
+        function renderTabs() {
+            const tabs = document.getElementById('tabs');
+            tabs.innerHTML = VIEWS.map(v => `<button class="tab" data-view="${v.id}">${v.label}</button>`).join('');
+            tabs.addEventListener('click', (e) => {
+                const btn = e.target.closest('.tab');
+                if (!btn) return;
+                setView(btn.dataset.view);
+            });
+        }
+
+        function setView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === id));
+            // refresh charts on dashboard only when visible
+            if (id === 'dashboard') { refreshCharts(); }
+        }
+
+        /* -------------------------
+           Add / Delete entries
+        -------------------------- */
+        function validateNumber(value, min = 0) {
+            const num = Number(value) || 0;
+            return Math.max(min, num);
+        }
+
+        function sanitizeText(text) {
+            return String(text || '').trim().substring(0, 200); // max 200 caratteri
+        }
+
+        function addGlovo() {
+            const date = document.getElementById('gDate').value;
+            if (!withinYear(date)) return alert(`Inserisci una data del ${currentYear}.`);
+
+            const earn = validateNumber(document.getElementById('gEarn').value, 0);
+            const cash = validateNumber(document.getElementById('gCash').value, 0);
+            const del = validateNumber(document.getElementById('gDel').value, 0);
+
+            if (earn === 0 && cash === 0 && del === 0) {
+                return alert('Inserisci almeno un valore diverso da zero.');
+            }
+
+            const entry = {
+                id: crypto.randomUUID(),
+                date,
+                earn,
+                cash,
+                del,
+                note: sanitizeText(document.getElementById('gNote').value)
+            };
+            state.glovo.push(entry);
+            saveAll();
+            clearGlovoForm();
+            refreshAll();
+        }
+        function clearGlovoForm() {
+            document.getElementById('gEarn').value = '';
+            document.getElementById('gCash').value = '';
+            document.getElementById('gDel').value = '';
+            document.getElementById('gNote').value = '';
+        }
+
+        function addDeliveroo() {
+            const date = document.getElementById('dDate').value;
+            if (!withinYear(date)) return alert(`Inserisci una data del ${currentYear}.`);
+
+            const earn = validateNumber(document.getElementById('dEarn').value, 0);
+            const cash = validateNumber(document.getElementById('dCash').value, 0);
+            const del = validateNumber(document.getElementById('dDel').value, 0);
+
+            if (earn === 0 && cash === 0 && del === 0) {
+                return alert('Inserisci almeno un valore diverso da zero.');
+            }
+
+            const entry = {
+                id: crypto.randomUUID(),
+                date,
+                earn,
+                cash,
+                del,
+                note: sanitizeText(document.getElementById('dNote').value)
+            };
+            state.deliveroo.push(entry);
+            saveAll();
+            clearDeliverooForm();
+            refreshAll();
+        }
+        function clearDeliverooForm() {
+            document.getElementById('dEarn').value = '';
+            document.getElementById('dCash').value = '';
+            document.getElementById('dDel').value = '';
+            document.getElementById('dNote').value = '';
+        }
+
+        function addFuneral() {
+            const date = document.getElementById('fDate').value;
+            if (!withinYear(date)) return alert(`Inserisci una data del ${currentYear}.`);
+
+            const agency = sanitizeText(document.getElementById('fAgency').value);
+            const city = sanitizeText(document.getElementById('fCity').value);
+            const type = sanitizeText(document.getElementById('fType').value);
+            const amount = validateNumber(document.getElementById('fAmount').value, 0);
+
+            if (!agency && !type && amount === 0) {
+                return alert('Inserisci almeno Agenzia/Tipo o Importo.');
+            }
+
+            const entry = {
+                id: crypto.randomUUID(),
+                date,
+                agency: agency || 'Senza agenzia',
+                city,
+                type,
+                amount,
+                note: sanitizeText(document.getElementById('fNote').value)
+            };
+            state.funerali.push(entry);
+            saveAll();
+            clearFuneralForm();
+            refreshAll();
+        }
+        function clearFuneralForm() {
+            document.getElementById('fAgency').value = '';
+            document.getElementById('fCity').value = '';
+            document.getElementById('fType').value = '';
+            document.getElementById('fAmount').value = '';
+            document.getElementById('fNote').value = '';
+        }
+
+        function delEntry(kind, id) {
+            state[kind] = state[kind].filter(x => x.id !== id);
+            saveAll();
+            refreshAll();
+        }
+
+        /* -------------------------
+           Summaries / Periods
+        -------------------------- */
+        function monthKey(iso) {
+            const d = fromISO(iso);
+            return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+        }
+        function getMonthlyBuckets(arr, pickEarn, pickCash, pickJobs) {
+            const map = new Map();
+            for (const e of arr) {
+                if (!withinYear(e.date)) continue;
+                const k = monthKey(e.date);
+                const cur = map.get(k) || { earn: 0, cash: 0, jobs: 0, count: 0 };
+                cur.earn += pickEarn(e);
+                cur.cash += pickCash(e);
+                cur.jobs += pickJobs(e);
+                cur.count += 1;
+                map.set(k, cur);
+            }
+            // ensure all months exist
+            for (let m = 0; m < 12; m++) {
+                const k = `${currentYear}-${pad2(m + 1)}`;
+                if (!map.has(k)) map.set(k, { earn: 0, cash: 0, jobs: 0, count: 0 });
+            }
+            return map;
+        }
+
+        function biweeklyPeriodsGlovo() {
+            const startIso = state.settings.glovoStartDate;
+            if (!startIso) return [];
+            let start = fromISO(startIso);
+            // build 26 periods as per "excel-like"
+            const periods = [];
+            for (let i = 0; i < 26; i++) {
+                const pStart = new Date(start);
+                pStart.setDate(start.getDate() + (i * 14));
+
+                const pEnd = new Date(pStart);
+                pEnd.setDate(pStart.getDate() + 13);
+
+                periods.push({
+                    idx: i + 1,
+                    start: pStart,
+                    end: pEnd
+                });
+            }
+            return periods;
+        }
+
+        function sumGlovoBetween(start, end) {
+            const rows = filterBetweenYear(state.glovo, start, end);
+            const earn = sum(rows, r => r.earn);
+            const cash = sum(rows, r => r.cash);
+            const del = sum(rows, r => r.del);
+            return { earn, cash, due: earn - cash, del };
+        }
+
+        function sumDeliverooBetween(start, end) {
+            const rows = filterBetweenYear(state.deliveroo, start, end);
+            const earn = sum(rows, r => r.earn);
+            const cash = sum(rows, r => r.cash);
+            const del = sum(rows, r => r.del);
+            return { earn, cash, due: earn - cash, del };
+        }
+
+        function sumFuneralsBetween(start, end) {
+            const s = start.getTime(), e = end.getTime();
+            const rows = state.funerali.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+            const earn = sum(rows, r => r.amount);
+            const count = rows.length;
+            const avg = count ? earn / count : 0;
+            return { earn, count, avg };
+        }
+
+        function lastNDaysEntries(kindArr, n) {
+            const today = getCurrentDate();
+            const start = new Date(today.getTime() - (n - 1) * 86400000);
+            const s = start.getTime(), e = today.getTime();
+            return kindArr.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+        }
+
+        /* -------------------------
+           Alerts
+        -------------------------- */
+        function computeAlerts() {
+            const TH = {
+                lowDailyRevenue: 30,
+                cashRatioHigh: 0.5,
+                glovoDailyDeliveriesLow: 3
+            };
+
+            // USA LA DATA CORRENTE REALE
+            const today = getCurrentDate();
+            const start = new Date(today.getTime() - 6 * 86400000); // ultimi 7 giorni
+            const s = start.getTime(), e = today.getTime();
+
+            const g7 = state.glovo.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+            const d7 = state.deliveroo.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+
+            const earn7 = sum(g7, r => r.earn) + sum(d7, r => r.earn);
+            const activeDays7 = new Set([...g7, ...d7].map(x => x.date)).size || 0;
+            const avg7 = activeDays7 ? earn7 / activeDays7 : 0;
+
+            const cashYtd = sum(state.glovo, r => r.cash) + sum(state.deliveroo, r => r.cash);
+            const earnYtd = sum(state.glovo, r => r.earn) + sum(state.deliveroo, r => r.earn) + sum(state.funerali, r => r.amount);
+            const cashRatio = earnYtd ? cashYtd / earnYtd : 0;
+
+            const glovoDelAvg7 = (new Set(g7.map(x => x.date)).size) ?
+                sum(g7, r => r.del) / new Set(g7.map(x => x.date)).size : 0;
+
+            const alerts = [];
+            if (avg7 > 0 && avg7 < TH.lowDailyRevenue) {
+                alerts.push({
+                    level: 'warn', title: 'Ricavi bassi ultimi 7 giorni',
+                    detail: `Media ~ ${fmtEUR.format(avg7)} / giorno attivo`,
+                    action: 'Valuta più turni o fasce migliori'
+                });
+            }
+            if (cashRatio > TH.cashRatioHigh) {
+                alerts.push({
+                    level: 'warn', title: 'Prelievi contanti alti',
+                    detail: `Contanti/ricavi ~ ${(cashRatio * 100).toFixed(0)}%`,
+                    action: 'Riduci prelievi o separa cassa'
+                });
+            }
+            if (glovoDelAvg7 > 0 && glovoDelAvg7 < TH.glovoDailyDeliveriesLow) {
+                alerts.push({
+                    level: 'warn', title: 'Consegne Glovo basse (ultimi 7 giorni)',
+                    detail: `Media ~ ${glovoDelAvg7.toFixed(1)} consegne/giorno attivo`,
+                    action: 'Aumenta ore o zone più dense'
+                });
+            }
+            if (!alerts.length) {
+                alerts.push({
+                    level: 'good', title: 'Nessun alert critico',
+                    detail: 'Tutto sotto controllo', action: 'Continua così'
+                });
+            }
+            return alerts;
+        }
+
+        /* -------------------------
+           Forecast
+        -------------------------- */
+        function computeForecast() {
+            // Based on tracked days (distinct active days across all channels)
+            const allDays = new Set([...state.glovo, ...state.deliveroo, ...state.funerali].map(x => x.date));
+            const daysTracked = allDays.size;
+            const total = sum(state.glovo, r => r.earn) + sum(state.deliveroo, r => r.earn) + sum(state.funerali, r => r.amount);
+            const avgDay = daysTracked ? total / daysTracked : 0;
+
+            const daysInYear = 365;
+            const projection = avgDay * daysInYear;
+
+            // ETA revenue target (lineare basato su giorni reali passati)
+            const target = Number(state.settings.targetRevenue || 0);
+            let etaRev = 'N/A';
+            if (avgDay > 0 && target > 0) {
+                const daysNeeded = Math.ceil((target - total) / avgDay);
+                if (daysNeeded <= 0) etaRev = 'Raggiunto';
+                else {
+                    const today = getCurrentDate();
+                    const eta = new Date(today.getTime() + daysNeeded * 86400000);
+                    etaRev = `${pad2(eta.getDate())}/${pad2(eta.getMonth() + 1)}/${eta.getFullYear()}`;
+                }
+            }
+
+            // Glovo target deliveries ETA
+            const glovoDel = sum(state.glovo, r => r.del);
+            const glovoTarget = Number(state.settings.targetGlovo || 0);
+            const glovoActiveDays = new Set(state.glovo.map(x => x.date)).size;
+            const glovoAvg = glovoActiveDays ? glovoDel / glovoActiveDays : 0;
+            let glovoEta = 'N/A';
+            const remain = Math.max(0, glovoTarget - glovoDel);
+            if (glovoAvg > 0 && remain > 0) {
+                const daysNeed = Math.ceil(remain / glovoAvg);
+                const today = getCurrentDate();
+                const eta = new Date(today.getTime() + daysNeed * 86400000);
+                glovoEta = `${pad2(eta.getDate())}/${pad2(eta.getMonth() + 1)}/${eta.getFullYear()}`;
+            } else if (glovoTarget > 0 && remain === 0) {
+                glovoEta = 'Raggiunto';
+            }
+
+            // Deliveroo target deliveries ETA
+            const drooDel = sum(state.deliveroo, r => r.del);
+            const drooTarget = Number(state.settings.targetDeliveroo || 0);
+            const drooActiveDays = new Set(state.deliveroo.map(x => x.date)).size;
+            const drooAvg = drooActiveDays ? drooDel / drooActiveDays : 0;
+            let drooEta = 'N/A';
+            const drooRemain = Math.max(0, drooTarget - drooDel);
+            if (drooAvg > 0 && drooRemain > 0) {
+                const daysNeed = Math.ceil(drooRemain / drooAvg);
+                const today = getCurrentDate();
+                const eta = new Date(today.getTime() + daysNeed * 86400000);
+                drooEta = `${pad2(eta.getDate())}/${pad2(eta.getMonth() + 1)}/${eta.getFullYear()}`;
+            } else if (drooTarget > 0 && drooRemain === 0) {
+                drooEta = 'Raggiunto';
+            }
+
+            // Funerals stats
+            const funCount = state.funerali.length;
+            const funEarn = sum(state.funerali, r => r.amount);
+            const funAvg = funCount ? funEarn / funCount : 0;
+
+            const mb = getMonthlyBuckets(state.funerali, r => r.amount, _ => 0, _ => 1);
+            const monthsActive = [...mb.values()].filter(v => v.count > 0).length;
+            const funMonthlyAvg = monthsActive ? funEarn / monthsActive : 0;
+
+            return { daysTracked, total, avgDay, projection, etaRev, glovoDel, glovoTarget, remain, glovoAvg, glovoEta, funCount, funAvg, funMonthlyAvg, drooDel, drooTarget, drooRemain, drooAvg, drooEta };
+        }
+
+        /* -------------------------
+           Payment / Goals Logic
+        -------------------------- */
+        /**
+         * REMOVED registerInflow in favor of derived logic (buildInflows).
+         * Calls to registerInflow should be replaced or removed.
+         */
+
+        // Glovo logic
+        function glovoPeriodKey(startISO, endISO) {
+            return `${startISO}__${endISO}`;
+        }
+
+        function markGlovoReceived(startISO, endISO) {
+            const start = fromISO(startISO), end = fromISO(endISO);
+            const sums = sumGlovoBetween(start, end);
+            if (sums.due <= 0) return alert('Niente da incassare per questo periodo.');
+
+            const key = glovoPeriodKey(startISO, endISO);
+            const todayISO = toISO(new Date());
+
+            state.settlements = state.settlements || { glovo: {}, deliveroo: {} };
+            state.settlements.glovo[key] = {
+                received: true,
+                amount: Number(sums.due.toFixed(2)),
+                receivedAt: todayISO
+            };
+
+            saveAll();
+            refreshAll();
+
+            // Auto-apply if enabled
+            if (state.goalSettings?.autoApply) {
+                applyAllocationToLastInflow();
+            }
+        }
+
+        function unmarkGlovoReceived(startISO, endISO) {
+            const key = glovoPeriodKey(startISO, endISO);
+            if (state.settlements?.glovo?.[key]) {
+                delete state.settlements.glovo[key];
+                saveAll();
+                refreshAll();
+            }
+        }
+
+        // Deliveroo logic
+        function drooMonthKey(monthISO) { return monthISO; }
+
+        function markDeliverooReceived(monthISO, startISO, endISO) {
+            const sums = sumDeliverooBetween(fromISO(startISO), fromISO(endISO));
+            if (sums.due <= 0) return alert('Niente da incassare per questo mese.');
+
+            const todayISO = toISO(new Date());
+            state.settlements = state.settlements || { glovo: {}, deliveroo: {} };
+            state.settlements.deliveroo[drooMonthKey(monthISO)] = {
+                received: true,
+                amount: Number(sums.due.toFixed(2)),
+                receivedAt: todayISO
+            };
+
+            saveAll();
+            refreshAll();
+
+            if (state.goalSettings?.autoApply) {
+                applyAllocationToLastInflow();
+            }
+        }
+
+        function unmarkDeliverooReceived(monthISO) {
+            if (state.settlements?.deliveroo?.[drooMonthKey(monthISO)]) {
+                delete state.settlements.deliveroo[drooMonthKey(monthISO)];
+                saveAll();
+                refreshAll();
+            }
+        }
+
+        // Funerals paid toggle
+        function toggleFuneralPaid(id) {
+            const row = state.funerali.find(x => x.id === id);
+            if (!row) return;
+            row.paid = !row.paid;
+            row.paidAt = row.paid ? toISO(new Date()) : null;
+
+            if (row.paid) {
+                // Implicitly becomes an inflow via buildInflows
+            }
+            saveAll();
+            refreshAll();
+
+            if (row.paid && state.goalSettings?.autoApply) {
+                applyAllocationToLastInflow();
+            }
+        }
+
+        // New Money Computation
+        function computeMoney() {
+            const glovoRows = state.glovo.filter(x => isInYear(x.date));
+            const drooRows = state.deliveroo.filter(x => isInYear(x.date));
+            const funRows = state.funerali.filter(x => isInYear(x.date));
+
+            const glovoEarn = sum(glovoRows, r => r.earn);
+            const drooEarn = sum(drooRows, r => r.earn);
+            const funEarn = sum(funRows, r => r.amount);
+
+            // Cash collected physically
+            const cashCollected = sum(glovoRows, r => r.cash) + sum(drooRows, r => r.cash);
+
+            // Payouts
+            const sG = state.settlements?.glovo || {};
+            const sD = state.settlements?.deliveroo || {};
+            const glovoPaid = sum(Object.values(sG).filter(x => x.received), x => x.amount || 0);
+            const drooPaid = sum(Object.values(sD).filter(x => x.received), x => x.amount || 0);
+
+            // Funerals paid
+            const funPaid = sum(funRows.filter(r => r.paid), r => r.amount || 0);
+
+            const earned = glovoEarn + drooEarn + funEarn;
+            const received = cashCollected + glovoPaid + drooPaid + funPaid;
+            const outstanding = earned - received;
+
+            return { earned, received, outstanding };
+        }
+
+        // Goals Logic
+        function ensureDefaultGoals() {
+            if (state.goals && state.goals.length > 0) return;
+            state.goals = [
+                { id: crypto.randomUUID(), type: 'bucket', name: 'Spesa', percent: 0.60, saved: 0 },
+                { id: crypto.randomUUID(), type: 'bucket', name: 'Risparmi', percent: 0.30, saved: 0 },
+                { id: crypto.randomUUID(), type: 'bucket', name: 'Svago', percent: 0.10, saved: 0 },
+            ];
+            saveAll();
+        }
+
+        function netFactor() {
+            const t = state.tax;
+            const eff = (Number(t.profitCoef) || 0) * ((Number(t.taxRate) || 0) + (Number(t.inpsRate) || 0));
+            return Math.max(0, 1 - eff);
+        }
+
+        function lastInflow() {
+            const inflows = buildInflows();
+            return inflows.length ? inflows[inflows.length - 1] : null;
+        }
+
+        function computeCashForecast() {
+            const inf = inflowsYear();
+            const grossYTD = sum(inf, x => x.gross || 0);
+            const days = new Set(inf.map(x => x.date)).size || 0;
+            const avgDay = days ? grossYTD / days : 0;
+            const grossYearProj = avgDay * 365;
+            return { grossYTD, days, avgDay, grossYearProj, netYearProj: grossYearProj * netFactor() };
+        }
+
+        function targetPercent(goal, cashFc) {
+            const price = Number(goal.price) || 0;
+            const saved = Number(goal.saved) || 0;
+            const remaining = Math.max(0, price - saved);
+            if (remaining <= 0) return 0;
+
+            const today = new Date();
+            const deadline = goal.deadline ? fromISO(goal.deadline) : new Date(currentYear, 11, 31);
+            const daysLeft = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / 86400000));
+            const expectedNetUntilDeadline = (cashFc.netYearProj / 365) * daysLeft;
+
+            if (expectedNetUntilDeadline <= 0) return 0;
+            return Math.min(1, remaining / expectedNetUntilDeadline);
+        }
+
+        function computeGoalAllocations() {
+            ensureDefaultGoals();
+            const li = lastInflow();
+            const cashFc = computeCashForecast();
+            const netLast = li ? (li.gross || 0) * netFactor() : 0;
+
+            const rows = state.goals.map(g => {
+                const pct = g.type === 'bucket'
+                    ? (Number(g.percent) || 0)
+                    : targetPercent(g, cashFc);
+
+                return { goal: g, pct };
+            });
+
+            const totalPct = sum(rows, r => r.pct);
+            const scale = totalPct > 1 ? (1 / totalPct) : 1;
+
+            return rows.map(r => {
+                const pct = r.pct * scale;
+                const suggested = netLast * pct;
+                const missing = r.goal.type === 'target'
+                    ? Math.max(0, (Number(r.goal.price) || 0) - (Number(r.goal.saved) || 0))
+                    : null;
+
+                return { ...r, pct, suggested, missing, netLast };
+            });
+        }
+
+        function applyAllocationToInflow(inflow) {
+            if (!inflow) return alert('Nessun incasso disponibile.');
+            if (state.goalAllocLog[inflow.id]) return alert('Accantonamento già applicato per questo incasso.');
+
+            const alloc = computeGoalAllocations();
+            const net = (inflow.gross || 0) * netFactor();
+            if (net <= 0) return alert('Netto stimato <= 0.');
+
+            const items = [];
+            let used = 0;
+
+            for (const r of alloc) {
+                const g = r.goal;
+                let amount = Number((r.suggested || 0).toFixed(2));
+                if (amount <= 0) continue;
+
+                if (g.type === 'target') {
+                    const remaining = Math.max(0, (Number(g.price) || 0) - (Number(g.saved) || 0));
+                    amount = Math.min(amount, remaining);
+                }
+
+                if (amount <= 0) continue;
+
+                // aggiorna salvato (trova l'oggetto reale nello state, r.goal è ref)
+                const realGoal = state.goals.find(x => x.id === g.id);
+                if (realGoal) {
+                    realGoal.saved = Number(((Number(realGoal.saved) || 0) + amount).toFixed(2));
+                    used += amount;
+                    items.push({ goalId: g.id, amount });
+                }
+            }
+
+            state.goalAllocLog[inflow.id] = { appliedAt: toISO(new Date()), items };
+
+            saveAll();
+            refreshAll();
+
+            const left = Number((net - used).toFixed(2));
+            if (left > 0.01 && !state.goalSettings.autoApply) {
+                // Alert solo se manuale, per non disturbare in auto
+                // Oppure mostriamo solo un toast? Per ora alert standard se manuale
+                alert(`Netto non allocato: ${fmtEUR.format(left)} (puoi aumentare % o aggiungere obbiettivi).`);
+            }
+        }
+
+        function applyAllocationToLastInflow() {
+            const li = lastInflow();
+            applyAllocationToInflow(li);
+        }
+
+        function undoAllocation(inflowId) {
+            const log = state.goalAllocLog[inflowId];
+            if (!log) return alert('Nessun accantonamento da annullare.');
+
+            for (const it of log.items) {
+                const g = state.goals.find(x => x.id === it.goalId);
+                if (!g) continue;
+                g.saved = Number(Math.max(0, (Number(g.saved) || 0) - (Number(it.amount) || 0)).toFixed(2));
+            }
+
+            delete state.goalAllocLog[inflowId];
+
+            saveAll();
+            refreshAll();
+            alert('Accantonamento annullato.');
+        }
+
+        function undoLastAllocation() {
+            const inflows = buildInflows();
+            for (let i = inflows.length - 1; i >= 0; i--) {
+                const id = inflows[i].id;
+                if (state.goalAllocLog[id]) {
+                    return undoAllocation(id);
+                }
+            }
+            alert('Nessun accantonamento recente trovato.');
+        }
+
+        function addGoal() {
+            const price = Number(document.getElementById('goalPrice').value) || 0;
+            const name = (document.getElementById('goalDesc').value || '').trim();
+            const deadline = document.getElementById('goalDeadline').value || null;
+
+            if (price <= 0 || !name) return alert('Inserisci Prezzo e Descrizione.');
+
+            state.goals.push({
+                id: crypto.randomUUID(),
+                type: 'target',
+                name,
+                price,
+                deadline,
+                saved: 0
+            });
+            saveAll();
+            document.getElementById('goalPrice').value = '';
+            document.getElementById('goalDesc').value = '';
+            document.getElementById('goalDeadline').value = '';
+            refreshAll();
+        }
+
+        function deleteGoal(id) {
+            if (!confirm('Eliminare questo obbiettivo?')) return;
+            state.goals = state.goals.filter(x => x.id !== id);
+            saveAll();
+            refreshAll();
+        }
+
+        function editBucketPct(id) {
+            const row = state.goals.find(x => x.id === id);
+            if (!row) return;
+            const p = prompt(`Nuova percentuale per ${row.name} (es. 0.50 per 50%)`, row.percent);
+            if (p !== null && !isNaN(Number(p))) {
+                row.percent = Number(p);
+                saveAll();
+                refreshAll();
+            }
+        }
+
+        /* -------------------------
+           Rendering
+        -------------------------- */
+        function renderTables() {
+            // Sort by date desc
+            const glovoSorted = [...state.glovo].sort((a, b) => b.date.localeCompare(a.date));
+            const drooSorted = [...state.deliveroo].sort((a, b) => b.date.localeCompare(a.date));
+            const funSorted = [...state.funerali].sort((a, b) => b.date.localeCompare(a.date));
+
+            document.getElementById('tblGlovo').innerHTML = glovoSorted.slice(0, 40).map(r => `
+    <tr>
+      <td class="mono">${toITDate(r.date)}</td>
+      <td class="right mono">${fmtEUR.format(r.earn || 0)}</td>
+      <td class="right mono">${fmtEUR.format(r.cash || 0)}</td>
+      <td class="right mono">${(r.del || 0)}</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td class="right no-print"><button class="btn secondary" onclick="delEntry('glovo','${r.id}')">Elimina</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Nessun dato ancora.</td></tr>`;
+
+            document.getElementById('tblDeliveroo').innerHTML = drooSorted.slice(0, 40).map(r => `
+    <tr>
+      <td class="mono">${toITDate(r.date)}</td>
+      <td class="right mono">${fmtEUR.format(r.earn || 0)}</td>
+      <td class="right mono">${fmtEUR.format(r.cash || 0)}</td>
+      <td class="right mono">${(r.del || 0)}</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td class="right no-print"><button class="btn secondary" onclick="delEntry('deliveroo','${r.id}')">Elimina</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="muted">Nessun dato ancora.</td></tr>`;
+
+            document.getElementById('tblFunerals').innerHTML = funSorted.slice(0, 60).map(r => {
+                const paidCheck = r.paid ? 'checked' : '';
+                const btnClass = r.paid ? 'good' : 'secondary';
+                const label = r.paid ? `Incassato (${toITDate(r.paidAt)})` : 'Da incassare';
+
+                // Toggle button
+                const btn = `<button class="btn ${btnClass}" style="padding:4px 8px; font-size:11px" onclick="toggleFuneralPaid('${r.id}')">${r.paid ? 'Pagato' : 'Segna pagato'}</button>`;
+
+                return `
+    <tr>
+      <td class="mono">${toITDate(r.date)}</td>
+      <td>${escapeHtml(r.agency || '')}</td>
+      <td>${escapeHtml(r.city || '')}</td>
+      <td>${escapeHtml(r.type || '')}</td>
+      <td class="right mono">${fmtEUR.format(r.amount || 0)}</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td class="right">${btn} <small class="muted">${r.paid ? toITDate(r.paidAt) : ''}</small></td>
+      <td class="right no-print"><button class="btn secondary" onclick="delEntry('funerali','${r.id}')">Elimina</button></td>
+    </tr>
+  `}).join('') || `<tr><td colspan="8" class="muted">Nessun incarico ancora.</td></tr>`;
+
+            // Glovo periods
+            const periods = biweeklyPeriodsGlovo();
+            document.getElementById('tblGlovoPeriods').innerHTML = periods.map(p => {
+                const sums = sumGlovoBetween(p.start, p.end);
+
+                const startISO = toISO(p.start), endISO = toISO(p.end);
+                const key = glovoPeriodKey(startISO, endISO);
+                const rec = state.settlements?.glovo?.[key];
+
+                const btn = rec?.received
+                    ? `<button class="btn secondary" style="font-size:11px; padding:4px 8px" onclick="unmarkGlovoReceived('${startISO}','${endISO}')">Annulla</button>`
+                    : `<button class="btn" style="font-size:11px; padding:4px 8px" onclick="markGlovoReceived('${startISO}','${endISO}')">Incassa</button>`;
+
+                const status = rec?.received ? `<span style="color:var(--good)">Incassato (${toITDate(rec.receivedAt)})</span>` : '-';
+
+                return `
+      <tr>
+        <td class="mono">Periodo ${p.idx}</td>
+        <td class="mono">${toITDate(startISO)}</td>
+        <td class="mono">${toITDate(endISO)}</td>
+        <td class="right mono">${fmtEUR.format(sums.earn)}</td>
+        <td class="right mono">${fmtEUR.format(sums.cash)}</td>
+        <td class="right mono">${fmtEUR.format(sums.due)}</td>
+        <td class="right mono">${sums.del}</td>
+        <td class="right mono">${status}</td>
+        <td class="right no-print">${btn}</td>
+      </tr>
+    `;
+            }).join('');
+
+            // Deliveroo months
+            const dMonths = [];
+            for (let m = 0; m < 12; m++) {
+                const s = startOfMonth(currentYear, m);
+                const e = endOfMonth(currentYear, m);
+                const sums = sumDeliverooBetween(s, e);
+                dMonths.push({ m, s, e, ...sums });
+            }
+            document.getElementById('tblDeliverooMonths').innerHTML = dMonths.map(x => {
+                const monthISO = `${currentYear}-${pad2(x.m + 1)}`;
+                const startISO = toISO(x.s), endISO = toISO(x.e);
+                const key = drooMonthKey(monthISO);
+                const rec = state.settlements?.deliveroo?.[key];
+
+                const btn = rec?.received
+                    ? `<button class="btn secondary" style="font-size:11px; padding:4px 8px" onclick="unmarkDeliverooReceived('${monthISO}')">Annulla</button>`
+                    : `<button class="btn" style="font-size:11px; padding:4px 8px" onclick="markDeliverooReceived('${monthISO}','${startISO}','${endISO}')">Incassa</button>`;
+
+                const status = rec?.received ? `<span style="color:var(--good)">Incassato (${toITDate(rec.receivedAt)})</span>` : '-';
+
+                return `
+    <tr>
+      <td>${monthName(x.m)}</td>
+      <td class="mono">${toITDate(startISO)}</td>
+      <td class="mono">${toITDate(endISO)}</td>
+      <td class="right mono">${fmtEUR.format(x.earn)}</td>
+      <td class="right mono">${fmtEUR.format(x.cash)}</td>
+      <td class="right mono">${fmtEUR.format(x.due)}</td>
+      <td class="right mono">${x.del}</td>
+      <td class="right mono">${status}</td>
+      <td class="right no-print">${btn}</td>
+    </tr>
+  `}).join('');
+
+            // Funerals months
+            const fMonths = [];
+            for (let m = 0; m < 12; m++) {
+                const s = startOfMonth(currentYear, m);
+                const e = endOfMonth(currentYear, m);
+                const sums = sumFuneralsBetween(s, e);
+                fMonths.push({ m, s, e, ...sums });
+            }
+            document.getElementById('tblFuneralMonths').innerHTML = fMonths.map(x => `
+    <tr>
+      <td>${monthName(x.m)}</td>
+      <td class="mono">${toITDate(toISO(x.s))}</td>
+      <td class="mono">${toITDate(toISO(x.e))}</td>
+      <td class="right mono">${fmtEUR.format(x.earn)}</td>
+      <td class="right mono">${x.count}</td>
+      <td class="right mono">${fmtEUR.format(x.avg)}</td>
+    </tr>
+  `).join('');
+
+            // Top agencies
+            const agencyMap = new Map();
+            for (const r of state.funerali) {
+                const k = (r.agency || '').trim() || '(Senza agenzia)';
+                const cur = agencyMap.get(k) || { count: 0, total: 0 };
+                cur.count += 1;
+                cur.total += (r.amount || 0);
+                agencyMap.set(k, cur);
+            }
+            const agencies = [...agencyMap.entries()]
+                .map(([name, v]) => ({ name, ...v, avg: v.count ? v.total / v.count : 0 }))
+                .sort((a, b) => b.total - a.total);
+            document.getElementById('tblTopAgencies').innerHTML = agencies.slice(0, 12).map(a => `
+    <tr>
+      <td>${escapeHtml(a.name)}</td>
+      <td class="right mono">${a.count}</td>
+      <td class="right mono">${fmtEUR.format(a.total)}</td>
+      <td class="right mono">${fmtEUR.format(a.avg)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="4" class="muted">Nessun dato.</td></tr>`;
+        }
+
+        function renderGoals() {
+            const alloc = computeGoalAllocations();
+            const li = lastInflow();
+
+            const applied = li ? !!state.goalAllocLog[li.id] : false;
+            document.getElementById('goalsHint').textContent = li
+                ? `Ultimo incasso: ${fmtEUR.format(li.gross)} — ${applied ? '✅ Accantonato' : '⚠️ Non accantonato'}`
+                : 'Nessun incasso registrato.';
+
+            document.getElementById('tblGoals').innerHTML = alloc.map(r => {
+                const g = r.goal;
+                const target = g.type === 'target' ? fmtEUR.format(g.price || 0) : '-';
+                const deadline = g.type === 'target' ? (g.deadline ? toITDate(g.deadline) : '31/12') : '-';
+                const saved = fmtEUR.format(g.saved || 0);
+                const missing = g.type === 'target' ? fmtEUR.format(r.missing || 0) : '-';
+                const pctTxt = `${(r.pct * 100).toFixed(1)}%`;
+                const sug = li ? fmtEUR.format(r.suggested || 0) : '-';
+
+                const actions = g.type === 'bucket'
+                    ? `<button class="btn secondary" style="font-size:11px; padding:4px 8px" onclick="editBucketPct('${g.id}')">%</button>`
+                    : `<button class="btn secondary" style="font-size:11px; padding:4px 8px" onclick="deleteGoal('${g.id}')">Elimina</button>`;
+
+                return `
+                    <tr>
+                    <td>${escapeHtml(g.name || '')}</td>
+                    <td class="right mono">${target}</td>
+                    <td class="mono">${deadline}</td>
+                    <td class="right mono">${saved}</td>
+                    <td class="right mono">${missing}</td>
+                    <td class="right mono">${pctTxt}</td>
+                    <td class="right mono">${sug}</td>
+                    <td class="right no-print">${actions}</td>
+                    </tr>`;
+            }).join('') || `<tr><td colspan="8" class="muted">Nessun obbiettivo.</td></tr>`;
+        }
+
+        function renderDashboard() {
+            const m = computeMoney();
+            const total = m.earned;
+            const cash = m.received;
+            const due = m.outstanding;
+
+            // Stats for channel table
+            const glovoEarn = sum(state.glovo.filter(x => isInYear(x.date)), r => r.earn);
+            const drooEarn = sum(state.deliveroo.filter(x => isInYear(x.date)), r => r.earn);
+            const funEarn = sum(state.funerali.filter(x => isInYear(x.date)), r => r.amount);
+
+            const glovoDel = sum(state.glovo.filter(x => isInYear(x.date)), r => r.del);
+            const drooDel = sum(state.deliveroo.filter(x => isInYear(x.date)), r => r.del);
+            const funCount = state.funerali.filter(x => isInYear(x.date)).length;
+
+            document.getElementById('kpiTotal').textContent = fmtEUR.format(total);
+            document.getElementById('kpiCash').textContent = fmtEUR.format(cash);
+            document.getElementById('kpiDue').textContent = fmtEUR.format(due);
+            // Update labels
+            document.querySelector('#kpiTotal').parentElement.querySelector('.sub').textContent = 'Ricavi maturati YTD';
+            document.querySelector('#kpiCash').parentElement.querySelector('h3').textContent = 'Incassato Confermato';
+            document.querySelector('#kpiCash').parentElement.querySelector('.sub').textContent = 'Contanti + Payout + Fun.Pagati';
+            document.querySelector('#kpiDue').parentElement.querySelector('.sub').textContent = 'Maturato - Incassato';
+
+            const channels = [
+                { name: 'Glovo', earn: glovoEarn, jobs: glovoDel, days: countDistinctDays(state.glovo), avg: glovoDel ? glovoEarn / glovoDel : 0 },
+                { name: 'Deliveroo', earn: drooEarn, jobs: drooDel, days: countDistinctDays(state.deliveroo), avg: drooDel ? drooEarn / drooDel : 0 },
+                { name: 'Servizi funebri', earn: funEarn, jobs: funCount, days: 'N/A', avg: funCount ? funEarn / funCount : 0 },
+            ];
+
+            const rows = channels.map(c => `
+    <tr>
+      <td>${escapeHtml(c.name)}</td>
+      <td class="right mono">${fmtEUR.format(c.earn)}</td>
+      <td class="right mono">${c.jobs}</td>
+      <td class="right mono">${fmtEUR.format(c.avg)}</td>
+      <td class="right mono">${c.days}</td>
+    </tr>
+  `).join('');
+            document.getElementById('tblChannels').innerHTML = rows;
+
+            // Alerts
+            const alerts = computeAlerts();
+            const countAlerts = alerts[0]?.level === 'good' ? 0 : alerts.length;
+            document.getElementById('pillAlerts').textContent = String(countAlerts);
+
+            const chip = document.getElementById('chipStatus');
+            chip.className = 'chip ' + (countAlerts === 0 ? 'good' : 'warn');
+            chip.textContent = countAlerts === 0 ? 'OK' : `${countAlerts} alert`;
+
+            document.getElementById('alertsBox').innerHTML = alerts.map(a => alertCard(a)).join('');
+
+            // Scheda riassuntiva
+            document.getElementById('sTotal').textContent = fmtEUR.format(total);
+            document.getElementById('sCash').textContent = fmtEUR.format(cash);
+            document.getElementById('sDue').textContent = fmtEUR.format(due);
+            document.getElementById('sTbl').innerHTML = channels.map(c => `
+    <tr>
+      <td>${escapeHtml(c.name)}</td>
+      <td class="right mono">${fmtEUR.format(c.earn)}</td>
+      <td class="right mono">${c.jobs}</td>
+      <td class="right mono">${fmtEUR.format(c.avg)}</td>
+      <td class="right mono">${c.days}</td>
+    </tr>
+  `).join('');
+            document.getElementById('sNote').textContent = `Target ricavi: ${fmtEUR.format(Number(state.settings.targetRevenue || 0))} • Target Glovo consegne: ${state.settings.targetGlovo}`;
+
+            // Alert tab
+            document.getElementById('alertsFull').innerHTML = alerts.map(a => alertCard(a, true)).join('');
+
+            // KPI last 7 days (REALI, non fissi)
+            const today = getCurrentDate();
+            const start = new Date(today.getTime() - 6 * 86400000);
+            const s = start.getTime(),
+                e = today.getTime();
+            const g7 = state.glovo.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+            const d7 = state.deliveroo.filter(x => {
+                const t = fromISO(x.date).getTime();
+                return t >= s && t <= e;
+            });
+            const total7 = sum(g7, r => r.earn) + sum(d7, r => r.earn);
+            const cash7 = sum(g7, r => r.cash) + sum(d7, r => r.cash);
+            const jobs7 = sum(g7, r => r.del) + sum(d7, r => r.del);
+            const days7 = new Set([...g7, ...d7].map(x => x.date)).size || 0;
+
+            document.getElementById('kpi7').innerHTML =
+                miniKpi('Ricavi 7g', fmtEUR.format(total7)) +
+                miniKpi('Contanti 7g', fmtEUR.format(cash7)) +
+                miniKpi('Consegne 7g', String(jobs7)) +
+                miniKpi('Giorni attivi 7g', String(days7));
+
+            // Forecast tab
+            const fc = computeForecast();
+            document.getElementById('fcAvgDay').textContent = fmtEUR.format(fc.avgDay);
+            document.getElementById('fcYear').textContent = fmtEUR.format(fc.projection);
+            document.getElementById('fcEtaRevenue').textContent = fc.etaRev;
+
+            document.getElementById('fcGlovoDel').textContent = String(fc.glovoDel);
+            document.getElementById('fcGlovoRemain').textContent = String(fc.remain);
+            document.getElementById('fcGlovoAvg').textContent = fc.glovoAvg.toFixed(2);
+            document.getElementById('fcGlovoEta').textContent = fc.glovoEta;
+
+            document.getElementById('fcDrooDel').textContent = String(fc.drooDel);
+            document.getElementById('fcDrooRemain').textContent = String(fc.drooRemain);
+            document.getElementById('fcDrooAvg').textContent = fc.drooAvg.toFixed(2);
+            document.getElementById('fcDrooEta').textContent = fc.drooEta;
+
+            document.getElementById('fcFunCount').textContent = String(fc.funCount);
+            document.getElementById('fcFunAvg').textContent = fmtEUR.format(fc.funAvg);
+            document.getElementById('fcFunMonthlyAvg').textContent = fmtEUR.format(fc.funMonthlyAvg);
+
+            // Fiscale
+            renderTax(total);
+        }
+
+        function renderTax(grossTotal) {
+            const t = state.tax;
+            document.getElementById('taxGross').textContent = fmtEUR.format(grossTotal);
+            const impon = grossTotal * t.profitCoef;
+            const tax = impon * t.taxRate;
+            const inps = impon * t.inpsRate;
+            const tot = tax + inps;
+
+            document.getElementById('taxImponibile').textContent = fmtEUR.format(impon);
+            document.getElementById('taxImponibileSub').textContent = `coef ${t.profitCoef}`;
+            document.getElementById('taxTotal').textContent = fmtEUR.format(tot);
+            document.getElementById('taxTotalSub').textContent = `imposta ${t.taxRate} • inps ${t.inpsRate}`;
+
+            document.getElementById('sImpon').textContent = fmtEUR.format(impon);
+            document.getElementById('sTax').textContent = fmtEUR.format(tax);
+            document.getElementById('sInps').textContent = fmtEUR.format(inps);
+            document.getElementById('sTaxTot').textContent = fmtEUR.format(tot);
+
+            // month table (use combined monthly buckets)
+            const all = [
+                ...state.glovo.map(x => ({ date: x.date, earn: x.earn })),
+                ...state.deliveroo.map(x => ({ date: x.date, earn: x.earn })),
+                ...state.funerali.map(x => ({ date: x.date, earn: x.amount }))
+            ];
+            const mb = getMonthlyBuckets(all, r => r.earn, _ => 0, _ => 0);
+            const rows = [];
+            for (let m = 0; m < 12; m++) {
+                const k = `${currentYear}-${pad2(m + 1)}`;
+                const v = mb.get(k) || { earn: 0 };
+                const impM = v.earn * t.profitCoef;
+                const taxM = impM * t.taxRate;
+                const inpsM = impM * t.inpsRate;
+                const totM = taxM + inpsM;
+                rows.push(`
+      <tr>
+        <td>${monthName(m)}</td>
+        <td class="right mono">${fmtEUR.format(v.earn)}</td>
+        <td class="right mono">${fmtEUR.format(impM)}</td>
+        <td class="right mono">${fmtEUR.format(taxM)}</td>
+        <td class="right mono">${fmtEUR.format(inpsM)}</td>
+        <td class="right mono">${fmtEUR.format(totM)}</td>
+      </tr>
+    `);
+            }
+            document.getElementById('tblTaxMonths').innerHTML = rows.join('');
+        }
+
+        /* -------------------------
+           Charts
+        -------------------------- */
+        let revenueChart = null;
+        let jobsChart = null;
+
+        function refreshCharts() {
+            const labels = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+            const monthTotals = new Array(12).fill(0);
+            const monthJobs = new Array(12).fill(0);
+
+            // glovo
+            for (const e of state.glovo) {
+                const d = fromISO(e.date); if (d.getFullYear() !== currentYear) continue;
+                monthTotals[d.getMonth()] += (e.earn || 0);
+                monthJobs[d.getMonth()] += (e.del || 0);
+            }
+            // deliveroo
+            for (const e of state.deliveroo) {
+                const d = fromISO(e.date); if (d.getFullYear() !== currentYear) continue;
+                monthTotals[d.getMonth()] += (e.earn || 0);
+                monthJobs[d.getMonth()] += (e.del || 0);
+            }
+            // funerals
+            for (const e of state.funerali) {
+                const d = fromISO(e.date); if (d.getFullYear() !== currentYear) continue;
+                monthTotals[d.getMonth()] += (e.amount || 0);
+                monthJobs[d.getMonth()] += 1;
+            }
+
+            const ctx1 = document.getElementById('chartRevenue');
+            const ctx2 = document.getElementById('chartJobs');
+
+            const commonOpts = {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: 'rgba(232,238,252,.8)' } },
+                    y: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: 'rgba(232,238,252,.8)' } }
+                }
+            };
+
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ricavi',
+                        data: monthTotals.map(x => Number(x.toFixed(2))),
+                        borderColor: 'rgba(122,162,255,.95)',
+                        backgroundColor: 'rgba(122,162,255,.20)',
+                        tension: .35,
+                        fill: true,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    ...commonOpts,
+                    scales: {
+                        ...commonOpts.scales,
+                        y: { ...commonOpts.scales.y, ticks: { ...commonOpts.scales.y.ticks, callback: (v) => '€' + v } }
+                    }
+                }
+            });
+
+            if (jobsChart) jobsChart.destroy();
+            jobsChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Consegne/Incarichi',
+                        data: monthJobs,
+                        backgroundColor: 'rgba(61,220,151,.30)',
+                        borderColor: 'rgba(61,220,151,.85)',
+                        borderWidth: 1
+                    }]
+                },
+                options: commonOpts
+            });
+        }
+
+        /* -------------------------
+           Helpers (UI)
+        -------------------------- */
+        function miniKpi(label, value) {
+            return `<div class="card" style="padding:12px; background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.08)">
+    <h3>${escapeHtml(label)}</h3>
+    <div class="big mono" style="font-size:20px">${escapeHtml(value)}</div>
+  </div>`;
+        }
+
+        function alertCard(a, compact = false) {
+            const cls = a.level === 'good' ? 'good' : (a.level === 'warn' ? 'warn' : 'bad');
+            const pill = `<span class="pill ${cls}">${a.level.toUpperCase()}</span>`;
+            return `
+    <div class="card" style="padding:12px; background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.08)">
+      <div class="kpi">
+        <b>${escapeHtml(a.title)}</b>
+        ${pill}
+      </div>
+      <div class="sub">${escapeHtml(a.detail || '')}</div>
+      <div class="sub" style="margin-top:6px">${escapeHtml(a.action || '')}</div>
+    </div>
+  `;
+        }
+
+        function escapeHtml(s) {
+            return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+        }
+        function toITDate(iso) {
+            const d = fromISO(iso);
+            return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
+        }
+        function monthName(m) {
+            return ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'][m];
+        }
+
+        /* -------------------------
+           Settings binding
+        -------------------------- */
+        function bindSettings() {
+            document.getElementById('glovoStartDate').value = state.settings.glovoStartDate;
+            document.getElementById('targetGlovo').value = state.settings.targetGlovo;
+            document.getElementById('targetDeliveroo').value = state.settings.targetDeliveroo;
+            document.getElementById('targetRevenue').value = state.settings.targetRevenue;
+
+            document.getElementById('taxRate').value = state.tax.taxRate;
+            document.getElementById('profitCoef').value = state.tax.profitCoef;
+            document.getElementById('inpsRate').value = state.tax.inpsRate;
+
+            if (document.getElementById('goalAutoApply')) {
+                document.getElementById('goalAutoApply').value = state.goalSettings?.autoApply ? '1' : '0';
+            }
+        }
+
+        function saveSettings() {
+            state.settings.glovoStartDate = document.getElementById('glovoStartDate').value;
+            state.settings.targetGlovo = Number(document.getElementById('targetGlovo').value || 0);
+            state.settings.targetDeliveroo = Number(document.getElementById('targetDeliveroo').value || 0);
+            state.settings.targetRevenue = Number(document.getElementById('targetRevenue').value || 0);
+            saveAll();
+            refreshAll();
+            alert('Impostazioni salvate.');
+        }
+
+        function saveTax() {
+            state.tax.taxRate = Number(document.getElementById('taxRate').value || 0);
+            state.tax.profitCoef = Number(document.getElementById('profitCoef').value || 0);
+            state.tax.inpsRate = Number(document.getElementById('inpsRate').value || 0);
+            saveAll();
+            refreshAll();
+            alert('Parametri fiscali salvati.');
+        }
+
+        /* -------------------------
+           Import / Export / Reset
+        -------------------------- */
+        function exportJSON() {
+            const payload = {
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                year: (typeof currentYear !== 'undefined') ? currentYear : 2026,
+                data: {
+                    glovo: state.glovo || [],
+                    deliveroo: state.deliveroo || [],
+                    funerali: state.funerali || [],
+                    settings: state.settings || {},
+                    tax: state.tax || {},
+
+                    // NUOVI
+                    goals: state.goals || [],
+                    goalAllocLog: state.goalAllocLog || {},
+                    goalSettings: state.goalSettings || { autoApply: false },
+                    settlements: state.settlements || { glovo: {}, deliveroo: {} }
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tracker-${payload.year}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const payload = JSON.parse(reader.result);
+                    if (!payload?.data) throw new Error('Formato non valido (manca data).');
+
+                    // merge controllato (non lascia undefined)
+                    state.glovo = payload.data.glovo || [];
+                    state.deliveroo = payload.data.deliveroo || [];
+                    state.funerali = payload.data.funerali || [];
+                    state.settings = payload.data.settings || state.settings;
+                    state.tax = payload.data.tax || state.tax;
+
+                    state.goals = payload.data.goals || [];
+                    state.goalAllocLog = payload.data.goalAllocLog || {};
+                    state.goalSettings = payload.data.goalSettings || { autoApply: false };
+                    state.settlements = payload.data.settlements || { glovo: {}, deliveroo: {} };
+
+                    // migrazione funerali
+                    state.funerali.forEach(r => {
+                        if (typeof r.paid === 'undefined') r.paid = false;
+                        if (typeof r.paidAt === 'undefined') r.paidAt = null;
+                    });
+
+                    saveAll();
+                    bindSettings();
+                    refreshAll();
+                    alert('Import completato.');
+                } catch (e) {
+                    alert('Import fallito: ' + e.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetAll() {
+            if (!confirm(`Confermi? Verranno cancellati tutti i dati del ${currentYear}.`)) return;
+
+            localStorage.removeItem(`${LSKEYS.glovo}_${currentYear}`);
+            localStorage.removeItem(`${LSKEYS.deliveroo}_${currentYear}`);
+            localStorage.removeItem(`${LSKEYS.funerali}_${currentYear}`);
+            localStorage.removeItem(`${LSKEYS.settings}_${currentYear}`);
+            localStorage.removeItem(`${LSKEYS.tax}_${currentYear}`);
+
+            location.reload();
+        }
+
+        /* -------------------------
+           Refresh all
+        -------------------------- */
+        function refreshAll() {
+            renderTables();
+            renderGoals();
+            renderDashboard();
+        }
+
+        function populateYearSelector() {
+            const selector = document.getElementById('yearSelector');
+            const thisYear = new Date().getFullYear();
+            const maxYear = Math.max(thisYear, 2026);
+
+            selector.innerHTML = '';
+            for (let y = 2026; y <= maxYear + 1; y++) { // +1 per permettere anno futuro
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                selector.appendChild(opt);
+            }
+
+            selector.addEventListener('change', (e) => {
+                saveAll(); // Salva anno corrente prima di cambiare
+
+                const newYear = Number(e.target.value);
+                currentYear = newYear;
+                localStorage.setItem(LSKEYS.year, String(currentYear));
+
+                // Reset defaults per il nuovo anno (evita residui se vuoto)
+                state.glovo = [];
+                state.deliveroo = [];
+                state.funerali = [];
+                state.settings = {
+                    glovoStartDate: `${currentYear}-01-05`,
+                    targetGlovo: 2000,
+                    targetDeliveroo: 2000,
+                    targetRevenue: 15000
+                };
+
+                loadAll();
+                bindSettings();
+                updateYearInTitle();
+                refreshAll();
+            });
+        }
+
+        function updateYearInTitle() {
+            const title = document.querySelector('.brand h1');
+            title.textContent = `Multi-Channel Earnings Tracker ${currentYear}`;
+        }
+
+        /* -------------------------
+           Init
+        -------------------------- */
+        function init() {
+            renderTabs();
+            loadAll();
+            populateYearSelector();
+            updateYearInTitle();
+            bindSettings();
+
+            // Default dates (usa anno corrente)
+            const defaultDate = `${currentYear}-${pad2(new Date().getMonth() + 1)}-${pad2(new Date().getDate())}`;
+            document.getElementById('gDate').value = defaultDate;
+            document.getElementById('dDate').value = defaultDate;
+            document.getElementById('fDate').value = defaultDate;
+
+            // Event listeners
+            document.getElementById('btnAddGlovo').addEventListener('click', addGlovo);
+            document.getElementById('btnAddDeliveroo').addEventListener('click', addDeliveroo);
+            document.getElementById('btnAddFuneral').addEventListener('click', addFuneral);
+            document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
+            document.getElementById('btnSaveTax').addEventListener('click', saveTax);
+            document.getElementById('btnExport').addEventListener('click', exportJSON);
+            document.getElementById('fileImport').addEventListener('change', (e) => {
+                if (e.target.files[0]) importJSON(e.target.files[0]);
+                e.target.value = ''; // reset per permettere reimport
+            });
+            document.getElementById('btnReset').addEventListener('click', resetAll);
+            document.getElementById('btnAddGoal').addEventListener('click', addGoal);
+
+            // Goal allocation listeners
+            document.getElementById('btnApplyLastInflow').addEventListener('click', applyAllocationToLastInflow);
+            document.getElementById('btnUndoLastInflow').addEventListener('click', undoLastAllocation);
+            document.getElementById('goalAutoApply').addEventListener('change', (e) => {
+                state.goalSettings.autoApply = e.target.value === '1';
+                saveAll();
+            });
+
+            // Registrazione Service Worker per PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(reg => console.log('Service Worker registrato:', reg))
+                        .catch(err => console.error('Errore registrazione Service Worker:', err));
+                });
+            }
+
+            setView('dashboard');
+            refreshAll();
+        }
+
+        // Chiamata init al caricamento
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+
+</html>
